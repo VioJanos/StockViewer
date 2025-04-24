@@ -27,28 +27,31 @@ module Client =
         open WebSharper.Charting
 
 
-        module Home =
-            let People =
-                ListModel.FromSeq [
-                    "John"
-                    "Paul"
-                ]
+        // module Home =
+        //     let People =
+        //         ListModel.FromSeq [
+        //             "John"
+        //             "Paul"
+        //         ]
             
-            let NewName = Var.Create ""
+        //     let NewName = Var.Create ""
 
-        let HomePage() =
-            IndexTemplate.HomePage()
-                .ListContainer(
-                    Home.People.View.DocSeqCached(fun (name: string) ->
-                        IndexTemplate.ListItem().Name(name).Doc()
-                    )
-                )
-                .Name(Home.NewName)
-                .Add(fun e ->
-                    Home.People.Add(Home.NewName.Value)
-                    Home.NewName.Value <- ""
-                )
-                .Doc()
+        // let HomePage() =
+        //     IndexTemplate.HomePage()
+        //         .ListContainer(
+        //             Home.People.View.DocSeqCached(fun (name: string) ->
+        //                 IndexTemplate.ListItem().Name(name).Doc()
+        //             )
+        //         )
+        //         .Name(Home.NewName)
+        //         .Add(fun e ->
+        //             Home.People.Add(Home.NewName.Value)
+        //             Home.NewName.Value <- ""
+        //         )
+        //         .Doc()
+
+        open Home
+        let HomePage () = Home.MainContent()
             
         open StockChart
         let StockPage () = MainView()
