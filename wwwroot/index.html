@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>StockViewer</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="Scripts/StockViewer.css" />
+    <style>
+        /* Don't show the not-yet-loaded templates */
+        [ws-template], [ws-children-template] { display: none; }
+    </style>
+    <script type="text/javascript" src="Scripts/StockViewer.head.js"></script>
+</head>
+<body>
+    <div>
+        <!-- <nav style="background-color: #333; padding: 10px;">
+            <ul style="list-style: none; display: flex; justify-content: center; margin: 0; padding: 0;">
+                <li style="margin: 0 15px;"><a ws-onclick="SwitchToHome" href="#/" style="color: white; text-decoration: none;">Home</a></li>
+                <li style="margin: 0 15px;"><a href="#charting" style="color: white; text-decoration: none;">Charting</a></li>
+                <li style="margin: 0 15px;"><a href="#forms" style="color: white; text-decoration: none;">Forms</a></li>
+                <li style="margin: 0 15px;"><a href="#counter" style="color: white; text-decoration: none;">Counter</a></li>
+                <li style="margin: 0 15px;"><a href="#calculator" style="color: white; text-decoration: none;">Calculator</a></li>
+                <li style="margin: 0 15px;"><a href="#stock" style="color: white; text-decoration: none;">Részvények</a></li>
+            </ul>
+        </nav> -->
+        <div ws-hole="Content"></div>
+    </div>
+
+    <div ws-children-template="HomePage">
+        <h1>My list of unique people</h1>
+        <ul ws-hole="ListContainer">
+            <li ws-template="ListItem">${Name}</li>
+        </ul>
+        <div>
+            <input ws-var="Name" placeholder="Name" />
+            <button ws-onclick="Add">Add</button>
+            <div>You are about to add: ${Name}</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import "/Scripts/StockViewer.min.js";
+    
+        // Aktív menüpont kiemelése
+        function setActiveLink() {
+            const links = document.querySelectorAll("nav a");
+            links.forEach(link => link.classList.remove("active"));
+            const current = Array.from(links).find(link => link.getAttribute("href") === location.hash);
+            if (current) current.classList.add("active");
+        }
+    
+        window.addEventListener("hashchange", setActiveLink);
+        window.addEventListener("DOMContentLoaded", setActiveLink);
+    </script>
+</body>
+</html>
