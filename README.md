@@ -30,10 +30,15 @@ dotnet run
 
 The app will be available at `http://localhost:5000`.
 
-### Deployment (Render or GitHub Pages)
+### Deployment (Render)
 
-This project supports auto-deployment using Render.com or GitHub Actions.  
-See `.github/workflows/deploy.yml` for the CI/CD pipeline.
+This project includes a `Dockerfile` in the root directory.  
+You can build and run the application using the following commands:
+
+```bash
+docker build -t stockviewer .
+docker run -p 5000:80 stockviewer
+```
 
 #### Live Demo  
 👉 [Try it live!](https://stockviewer-oi64.onrender.com)
