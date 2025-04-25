@@ -16,4 +16,6 @@ obj/
 *.userwebsharper.log
 websharper.log
 log_response.json
+parse_errors.log
 api_usage.log
+./wwwroot/export.csv

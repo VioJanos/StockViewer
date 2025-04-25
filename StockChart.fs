@@ -25,27 +25,59 @@ module StockChart =
         let chartVar = Var.Create (text "Please select a stock and interval.")
         let loadClicked = Var.Create false
         let errorVar = Var.Create Doc.Empty
+        let chartLoaded = Var.Create false
+
+        // let downloadButton =
+        //         Doc.Button "Download CSV" [ attr.style "margin-top: 10px;" ] (fun _ ->
+        //             async {
+        //                 let symbol = selected.Value
+        //                 let interval = selectedInterval.Value
+
+        //                 let! points = Server.GetStockData symbol interval
+
+        //                 if not points.IsEmpty then
+        //                     let! url = Server.ExportToCsv points
+        //                     JS.Window.Location.Href <- url
+        //                 else
+        //                     JS.Alert("No data available to download!")
+        //             }
+        //             |> Async.Start
+        //         )
 
         let downloadButton =
-            Doc.Button "Download CSV" [ attr.style "margin-top: 10px;" ] (fun _ ->
-                async {
-                    let symbol = selected.Value
-                    let interval = selectedInterval.Value
+            chartLoaded.View
+            |> View.Map (fun enabled ->
+                let baseAttrs = 
+                    [
+                                               
+                        if enabled then buttonPrimary else buttonDisabled
+                        if not enabled then attr.disabled "disabled"
+                        if not enabled then attr.title "Please load the chart first."
+                    ]
 
-                    let! points = Server.GetStockData symbol interval
-
-                    if not points.IsEmpty then
-                        let! url = Server.ExportToCsv points
-                        JS.Window.Location.Href <- url
-                    else
-                        JS.Alert("No data available to download!")
-                }
-                |> Async.Start
+                Doc.Button "Download CSV" baseAttrs (fun _ ->
+                    async {
+                        let symbol = selected.Value
+                        let interval = selectedInterval.Value
+                        let! points = Server.GetStockData symbol interval
+                        if not points.IsEmpty then
+                            let! url = Server.ExportToCsv points
+                            JS.Window.Location.Href <- url
+                        else
+                            JS.Alert("No data available to download!")
+                    }
+                    |> Async.Start
+                )
             )
+            |> Doc.EmbedView
 
         let updateChart () =
             async {
-                chartVar.Value <- text "Loading..."
+                div [ spinnerContainer ] [
+                    spinnerKeyframes
+                    div [ spinnerStyle ] []
+                    div [ loadingTextStyle ] [ text "Loading..." ]
+                ]
                 errorVar.Value <- Doc.Empty
                 try
                     let symbol = selected.Value
@@ -64,27 +96,45 @@ module StockChart =
                         let chartLines = [
                             Array.zip labelsArr openArr
                             |> Chart.Line
-                            |> fun c -> c.WithTitle("Open").WithStrokeColor(Color.Name "green")
+                            |> fun c -> c.WithTitle("Open (USD)").WithStrokeColor(Color.Name "green").WithPointStrokeColor(Color.Name "black")
 
                             Array.zip labelsArr highArr
                             |> Chart.Line
-                            |> fun c -> c.WithTitle("High").WithStrokeColor(Color.Name "red")
+                            |> fun c -> c.WithTitle("High (USD)").WithStrokeColor(Color.Name "red").WithPointStrokeColor(Color.Name "black")
 
                             Array.zip labelsArr lowArr
                             |> Chart.Line
-                            |> fun c -> c.WithTitle("Low").WithStrokeColor(Color.Name "purple")
+                            |> fun c -> c.WithTitle("Low (USD)").WithStrokeColor(Color.Name "purple").WithPointStrokeColor(Color.Name "black")
 
                             Array.zip labelsArr closeArr
                             |> Chart.Line
-                            |> fun c -> c.WithTitle("Close").WithStrokeColor(Color.Name "blue")
+                            |> fun c -> c.WithTitle("Close (USD)").WithStrokeColor(Color.Name "blue").WithPointStrokeColor(Color.Name "black")
                         ]
 
-                        let chart = Chart.Combine chartLines
-                        chartVar.Value <- ChartJs.Render(chart, Size = Size(1200, 600))
+                        let chart = Chart.Combine chartLines 
+                        chartVar.Value <- 
+                            div [
+                                attr.style "display: flex; justify-content: center; margin-top: 30px;"
+                                fadeInStyle
+                            ] [
+                                ChartJs.Render(chart, Size = Size(1200, 600))
+                            ]
+                        chartLoaded.Value <- true
                 with ex ->
                     chartVar.Value <- text "Failed to load data."
-                    errorVar.Value <- p [attr.style "color: red;"] [text $"API error: {ex.Message}"]                
+                    chartLoaded.Value <- false
+                    errorVar.Value <- 
+                        p [ attr.style "color: red;" ] [
+                            text (
+                                if ex.Message.Contains("500") then
+                                    "🚫 API limit reached! Please wait a minute and try again."
+                                else
+                                    $"API error: {ex.Message}"
+                            )
+                        ]              
             }
+
+            
 
         let onClickLoad () = 
             loadClicked.Value <- true
@@ -98,13 +148,19 @@ module StockChart =
                 Doc.InputType.Select [selectStyle] id intervals selectedInterval
             ]
             span [ attr.style "margin-left: 10px;" ] [
-                button [ on.click (fun _ _ -> onClickLoad()) ] [ text "Load Data" ]
+                button 
+                    [ 
+                        on.click (fun _ _ -> onClickLoad())
+                        buttonBase
+                        // buttonPrimary
+                    ] 
+                    [ text "Load Data" ]
             ]
             span [ attr.style "margin-left: 10px;" ] [
                 downloadButton 
             ]
             br [] []
-            div [] [
+            div [chartWrapper] [
                 chartVar.View |> Doc.EmbedView 
                 errorVar.View |> Doc.EmbedView
             ]

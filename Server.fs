@@ -15,6 +15,30 @@ module Server =
         Count: int
     }
 
+    type TwelveError = { 
+        code: int
+        message: string
+        status: string 
+    }
+
+   
+
+    let isRateLimitExceeded (responseText: string) =
+        try
+            let doc = JsonDocument.Parse(responseText)
+            // let parsed = JsonSerializer.Deserialize<TwelveError>(responseText)
+
+
+            let exampleError : TwelveError = {
+                code = doc.RootElement.GetProperty("code").GetInt32()
+                message = doc.RootElement.GetProperty("message").GetString()
+                status = doc.RootElement.GetProperty("status").GetString()
+            }
+
+            exampleError.status = "error" && exampleError.code = 429
+            // parsed.code = 429
+        with _ -> false
+
     let usageFile = "api_usage.log"
     let apiKeys = [ "CCLTI7YCJC74ONSR"; "LMQYMBQ8ZTCAIKXZ"; "VWZUV65XC0C2MXHB" ]
     let maxPerDay = 25
@@ -108,13 +132,18 @@ module Server =
 
                     // Return 30 data points
                     let url = $"https://api.twelvedata.com/time_series?symbol={symbol}&interval={twelvedataInterval}&apikey={tdApiKey}&outputsize=30"
-
+                    
                     use client = new HttpClient()
                     let! response = client.GetStringAsync(url) |> Async.AwaitTask
+
+                    
 
                     File.WriteAllText("log_response.json", response + "\n" + url)
 
                     File.AppendAllText("parse_errors.log", $"Twelvedata válasz:\n{response}\n")
+
+                    if isRateLimitExceeded response then
+                        failwith "You have reached the API limit for this minute. Please wait and try again."
 
                     try
                         let doc = JsonDocument.Parse(response)
