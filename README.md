@@ -30,15 +30,12 @@ dotnet run
 
 The app will be available at `http://localhost:5000`.
 
-### Deployment (Render)
+### Deployment with Render.com
 
-This project includes a `Dockerfile` in the root directory.  
-You can build and run the application using the following commands:
+This project is hosted on [Render.com](https://render.com) using a custom Docker deployment.  
+Render uses the `Dockerfile` located in the root directory to build and run the application.
 
-```bash
-docker build -t stockviewer .
-docker run -p 5000:80 stockviewer
-```
+No additional configuration is required — just connect your GitHub repository to Render and select "Docker" as the environment.
 
 #### Live Demo  
 👉 [Try it live!](https://stockviewer-oi64.onrender.com)
